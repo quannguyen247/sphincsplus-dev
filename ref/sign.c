@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
-
+#include <stdio.h>
 #include "api.h"
 #include "params.h"
 #include "wots.h"
@@ -55,7 +55,7 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
 {
     spx_ctx ctx;
 
-    /* Initialize SK_SEED, SK_PRF and PUB_SEED from seed. */
+    printf("[STEP 2] Initialize SK_SEED, SK_PRF and PUB_SEED from seed.\n");
     memcpy(sk, seed, CRYPTO_SEEDBYTES);
 
     memcpy(pk, sk + 2*SPX_N, SPX_N);
@@ -67,9 +67,10 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
        preparation or computation it needs, based on the public seed. */
     initialize_hash_function(&ctx);
 
-    /* Compute root node of the top-most subtree. */
+    printf("[STEP 3] Compute root node of the top-most subtree 'pub_root'.\n");
     merkle_gen_root(sk + 3*SPX_N, &ctx);
 
+    printf("[STEP 4] Assemble the secret key and public key according to the required format.\n");
     memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
 
     return 0;
@@ -82,11 +83,13 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
-  unsigned char seed[CRYPTO_SEEDBYTES];
-  randombytes(seed, CRYPTO_SEEDBYTES);
-  crypto_sign_seed_keypair(pk, sk, seed);
+    printf("\n====== KEY GENERATION STAGE ======\n\n");
+    printf("[STEP 1] Generate random seed with randombytes\n");
+    unsigned char seed[CRYPTO_SEEDBYTES];
+    randombytes(seed, CRYPTO_SEEDBYTES);
+    crypto_sign_seed_keypair(pk, sk, seed);
 
-  return 0;
+    return 0;
 }
 
 /**
