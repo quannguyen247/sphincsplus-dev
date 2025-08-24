@@ -114,26 +114,32 @@ main(void)
         }
         fprintBstr(fp_rsp, "msg = ", m, mlen);
 
+        printf("\n[KAT Test %d: KEY GENERATION]\n", count);
         // Generate the public/private keypair
         if ( (ret_val = crypto_sign_keypair(pk, sk)) != 0) {
             printf("crypto_sign_keypair returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
+        printf("  - Keypair generated.\n");
         fprintBstr(fp_rsp, "pk = ", pk, CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
 
+        printf("[KAT Test %d: SIGNING]\n", count);
         if ( (ret_val = crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
             printf("crypto_sign returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
+        printf("  - Message signed.\n");
         fprintf(fp_rsp, "smlen = %llu\n", smlen);
         fprintBstr(fp_rsp, "sm = ", sm, smlen);
         fprintf(fp_rsp, "\n");
 
+        printf("[KAT Test %d: VERIFICATION]\n", count);
         if ( (ret_val = crypto_sign_open(m1, &mlen1, sm, smlen, pk)) != 0) {
             printf("crypto_sign_open returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
+        printf("  - Signature verified.\n");
 
         if ( mlen != mlen1 ) {
             printf("crypto_sign_open returned bad 'mlen': Got <%llu>, expected <%llu>\n", mlen1, mlen);
@@ -144,6 +150,7 @@ main(void)
             printf("crypto_sign_open returned bad 'm' value\n");
             return KAT_CRYPTO_FAILURE;
         }
+        printf("  - Message content and length verified successfully.\n");
 
         free(m);
         free(m1);

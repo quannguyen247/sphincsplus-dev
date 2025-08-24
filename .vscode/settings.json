@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "api.h": "c",
+        "params.h": "c",
+        "wots.h": "c"
+    }
+}
