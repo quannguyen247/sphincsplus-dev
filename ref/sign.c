@@ -71,7 +71,6 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
     merkle_gen_root(sk + 3*SPX_N, &ctx);
 
     printf("[STEP 4] Assemble the secret key and public key according to the required format.\n");
-    printf("\n==========================================\n")
     memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
 
     return 0;
@@ -261,7 +260,6 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     printf("[STEP 6] Append the message M to the signature to form the final output.\n");
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
-    printf("\n==========================================\n");
     return 0;
 }
 
