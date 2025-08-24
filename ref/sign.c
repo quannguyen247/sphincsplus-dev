@@ -88,7 +88,7 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     unsigned char seed[CRYPTO_SEEDBYTES];
     randombytes(seed, CRYPTO_SEEDBYTES);
     crypto_sign_seed_keypair(pk, sk, seed);
-
+    printf("[Done] Key generation completed successfully.\n");
     return 0;
 }
 
@@ -125,24 +125,24 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     /* Optionally, signing can be made non-deterministic using optrand.
        This can help counter side-channel attacks that would benefit from
        getting a large number of traces when the signer uses the same nodes. */
-    printf("\n=========== KEY SIGNING STAGE ===========\n\n");
+    printf("\n============== SIGNING STAGE ==============\n\n");
     printf("[STEP 1] Generate random value R for message digest randomization.\n");
     randombytes(optrand, SPX_N);
     printf("[STEP 2] Compute the digest randomization value.\n");
     gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
 
-    printf("[STEP 3] Derive the message digest and leaf index from R, PK and M.\n");
+    printf("[STEP 2] Derive the message digest and leaf index from R, PK and M.\n");
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     set_tree_addr(wots_addr, tree);
     set_keypair_addr(wots_addr, idx_leaf);
 
-    printf("[STEP 4] Sign the message hash using FORS.\n");
+    printf("[STEP 3] Sign the message hash using FORS.\n");
     fors_sign(sig, root, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
 
-    printf("[STEP 5] Initialize a for loop to sign the message hash across all layers of the Merkle tree.\n");
+    printf("[STEP 4] Initialize a for loop to sign the message hash across all layers of the Merkle tree.\n");
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
         set_tree_addr(tree_addr, tree);
@@ -196,7 +196,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
     set_type(wots_pk_addr, SPX_ADDR_TYPE_WOTSPK);
 
-    /* Derive the message digest and leaf index from R || PK || M. */
+    printf("[STEP 1] Derive the message digest and leaf index from R || PK || M.\n");
     /* The additional SPX_N is a result of the hash domain separator. */
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
@@ -205,10 +205,12 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
     set_tree_addr(wots_addr, tree);
     set_keypair_addr(wots_addr, idx_leaf);
 
+    printf("[STEP 2] Compute the FORS public key from the signature and message hash to verify.\n");
     fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
 
     /* For each subtree.. */
+    printf("[STEP 3] Initialize a for loop starting from the bottom layer up to the top layer of hypertree, for each Merkle subtree.\n");
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
         set_tree_addr(tree_addr, tree);
@@ -238,6 +240,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
     }
 
     /* Check if the root node equals the root node in the public key. */
+    printf("[STEP 4] Check if the root node equals the root node in the public key.\n");
     if (memcmp(root, pub_root, SPX_N)) {
         return -1;
     }
@@ -257,9 +260,10 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
 
     crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
 
-    printf("[STEP 6] Append the message M to the signature to form the final output.\n");
+    printf("[STEP 5] Append the message M to the signature to form the final output.\n");
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
+    printf("[Done] Signature generated successfully.\n");
     return 0;
 }
 
@@ -270,8 +274,10 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
                      const unsigned char *sm, unsigned long long smlen,
                      const unsigned char *pk)
 {
+    printf("\n============= VERIFYING STAGE =============\n\n");
     /* The API caller does not necessarily know what size a signature should be
        but SPHINCS+ signatures are always exactly SPX_BYTES. */
+    printf("[Auxiliary] Check signature length\n");
     if (smlen < SPX_BYTES) {
         memset(m, 0, smlen);
         *mlen = 0;
@@ -279,14 +285,15 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     }
 
     *mlen = smlen - SPX_BYTES;
-
     if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
         memset(m, 0, smlen);
         *mlen = 0;
+        printf("[Done] Signature verification unsuccessful!\n");
         return -1;
     }
 
     /* If verification was successful, move the message to the right place. */
+    printf("[Done] Signature verification successful!\n");
     memmove(m, sm + SPX_BYTES, *mlen);
 
     return 0;
