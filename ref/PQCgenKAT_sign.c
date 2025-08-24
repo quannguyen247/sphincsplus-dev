@@ -63,7 +63,7 @@ main(void)
         return KAT_DATA_ERROR;
     }
     fseek(fmsg, 0, SEEK_END);
-    mlen = ftell(fmsg);
+    mlen = (unsigned long long)ftell(fmsg);
     fseek(fmsg, 0, SEEK_SET);
     fread(msg, 1, mlen, fmsg);
     fclose(fmsg);
