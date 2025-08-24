@@ -71,6 +71,7 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
     merkle_gen_root(sk + 3*SPX_N, &ctx);
 
     printf("[STEP 4] Assemble the secret key and public key according to the required format.\n");
+    printf("\n==========================================\n")
     memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
 
     return 0;
@@ -83,7 +84,7 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
-    printf("\n====== KEY GENERATION STAGE ======\n\n");
+    printf("\n=========== KEY GENERATION STAGE ===========\n\n");
     printf("[STEP 1] Generate random seed with randombytes\n");
     unsigned char seed[CRYPTO_SEEDBYTES];
     randombytes(seed, CRYPTO_SEEDBYTES);
@@ -125,21 +126,24 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     /* Optionally, signing can be made non-deterministic using optrand.
        This can help counter side-channel attacks that would benefit from
        getting a large number of traces when the signer uses the same nodes. */
+    printf("\n=========== KEY SIGNING STAGE ===========\n\n");
+    printf("[STEP 1] Generate random value R for message digest randomization.\n");
     randombytes(optrand, SPX_N);
-    /* Compute the digest randomization value. */
+    printf("[STEP 2] Compute the digest randomization value.\n");
     gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
 
-    /* Derive the message digest and leaf index from R, PK and M. */
+    printf("[STEP 3] Derive the message digest and leaf index from R, PK and M.\n");
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
 
     set_tree_addr(wots_addr, tree);
     set_keypair_addr(wots_addr, idx_leaf);
 
-    /* Sign the message hash using FORS. */
+    printf("[STEP 4] Sign the message hash using FORS.\n");
     fors_sign(sig, root, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
 
+    printf("[STEP 5] Initialize a for loop to sign the message hash across all layers of the Merkle tree.\n");
     for (i = 0; i < SPX_D; i++) {
         set_layer_addr(tree_addr, i);
         set_tree_addr(tree_addr, tree);
@@ -254,9 +258,10 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
 
     crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
 
+    printf("[STEP 6] Append the message M to the signature to form the final output.\n");
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
-
+    printf("\n==========================================\n");
     return 0;
 }
 
