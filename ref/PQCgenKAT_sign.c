@@ -56,19 +56,26 @@ main(void)
         entropy_input[i] = (unsigned char)i;
 
     randombytes_init(entropy_input, NULL);
-    for (int i=0; i<1; i++) {
-        fprintf(fp_req, "count = %d\n", i);
-        randombytes(seed, 48);
-        fprintBstr(fp_req, "seed = ", seed, 48);
-        mlen = (unsigned long long int)(33*(i+1));
-        fprintf(fp_req, "mlen = %llu\n", mlen);
-        randombytes(msg, mlen);
-        fprintBstr(fp_req, "msg = ", msg, mlen);
-        fprintf(fp_req, "pk =\n");
-        fprintf(fp_req, "sk =\n");
-        fprintf(fp_req, "smlen =\n");
-        fprintf(fp_req, "sm =\n\n");
+    // Đọc message từ file ref/input.txt
+    FILE *fmsg = fopen("ref/input.txt", "rb");
+    if (!fmsg) {
+        printf("ERROR: Cannot open ref/input.txt for reading!\n");
+        return KAT_DATA_ERROR;
     }
+    fseek(fmsg, 0, SEEK_END);
+    mlen = ftell(fmsg);
+    fseek(fmsg, 0, SEEK_SET);
+    fread(msg, 1, mlen, fmsg);
+    fclose(fmsg);
+    fprintf(fp_req, "count = 0\n");
+    randombytes(seed, 48);
+    fprintBstr(fp_req, "seed = ", seed, 48);
+    fprintf(fp_req, "mlen = %llu\n", mlen);
+    fprintBstr(fp_req, "msg = ", msg, mlen);
+    fprintf(fp_req, "pk =\n");
+    fprintf(fp_req, "sk =\n");
+    fprintf(fp_req, "smlen =\n");
+    fprintf(fp_req, "sm =\n\n");
     fclose(fp_req);
 
     //Create the RESPONSE file based on what's in the REQUEST file
