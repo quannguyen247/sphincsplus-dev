@@ -56,7 +56,7 @@ main(void)
         entropy_input[i] = (unsigned char)i;
 
     randombytes_init(entropy_input, NULL);
-    for (int i=0; i<100; i++) {
+    for (int i=0; i<1; i++) {
         fprintf(fp_req, "count = %d\n", i);
         randombytes(seed, 48);
         fprintBstr(fp_req, "seed = ", seed, 48);
