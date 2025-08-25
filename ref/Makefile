@@ -1,3 +1,5 @@
+test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 PARAMS = sphincs-haraka-128f
 THASH = robust
 
