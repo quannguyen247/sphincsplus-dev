@@ -241,7 +241,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
 
     /* Print first 8 bytes of root and pub_root for debugging/visualization */
-    printf("[Step 4] root     (first 8 bytes): ");
+    printf("[Step 4] new_root (first 8 bytes): "); // recomputed root from signature
     for (int i = 0; i < 8; i++) printf("%02X%s", root[i], i < 7 ? " " : "");
     printf(" ...\n");
     printf("[Step 4] pub_root (first 8 bytes): ");
@@ -297,7 +297,7 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
         memset(m, 0, smlen);
         *mlen = 0;
-        printf("[DONE] Signature verification unsuccessful!\n");
+        printf("[DONE] Signature verification failed!\n");
         return -1;
     }
 

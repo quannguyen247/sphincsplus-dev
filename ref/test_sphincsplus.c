@@ -24,30 +24,40 @@ int main(void) {
     unsigned long long mlen1;
 
     crypto_sign_keypair(pk, sk);
+
+    // make sk invalid to test
+    // sk[0] ^= 0xFF;
+
     crypto_sign(sm, &smlen, msg, mlen, sk);
+
+    // make sig invalid to test
+    sm[0] ^= 0xFF;
+
     int valid = (crypto_sign_open(m1, &mlen1, sm, smlen, pk) == 0 && mlen1 == mlen && memcmp(msg, m1, mlen) == 0);
 
     FILE *fp_out = fopen("output.txt", "w");
     if (fp_out) {
         // Key Generation Stage
         fprintf(fp_out, "Key Generation Stage:\n");
-        fprintf(fp_out, " - Input: None\n");
-        fprintf(fp_out, " - Output:\n");
+        fprintf(fp_out, "- Input: None\n");
+        fprintf(fp_out, "- Output:\n");
         fprintBstr(fp_out, "* Public Key: ", pk, CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_out, "* Secret Key: ", sk, CRYPTO_SECRETKEYBYTES);
         fprintf(fp_out, "\n");
 
+        
+
         // Signing Stage
         fprintf(fp_out, "Signing Stage:\n");
-        fprintf(fp_out, " - Input: input.txt, sk\n");
-        fprintf(fp_out, " - Output:\n");
+        fprintf(fp_out, "- Input: input.txt, sk\n");
+        fprintf(fp_out, "- Output:\n");
         fprintBstr(fp_out, "* Signature: ", sm, CRYPTO_BYTES);
         fprintf(fp_out, "\n");
 
         // Verifying Stage
         fprintf(fp_out, "Verifying Stage:\n");
-        fprintf(fp_out, " - Input: input.txt, sig, pk\n");
-        fprintf(fp_out, " - Output: %s\n", valid ? "Valid" : "Invalid");
+        fprintf(fp_out, "- Input: input.txt, sig, pk\n");
+        fprintf(fp_out, "- Output: %s\n", valid ? "Valid" : "Invalid");
         fclose(fp_out);
     }
     return 0;
