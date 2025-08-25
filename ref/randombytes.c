@@ -1,4 +1,3 @@
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,17 +9,20 @@
 #else
 #include <fcntl.h>
 #include <errno.h>
+
 #ifdef __linux__
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+#include <sys/types.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#else
-#include <unistd.h>
+#include <sys/random.h>
 #endif
 #endif
 
 #ifdef _WIN32
-void randombytes(unsigned char *out, unsigned long long outlen) {
+void randombytes(unsigned char *out, size_t outlen) {
     HCRYPTPROV ctx;
     size_t len;
 
@@ -28,7 +30,7 @@ void randombytes(unsigned char *out, unsigned long long outlen) {
         abort();
 
     while(outlen > 0) {
-        len = (outlen > 1048576) ? 1048576 : (size_t)outlen;
+        len = (outlen > 1048576) ? 1048576 : outlen;
         if(!CryptGenRandom(ctx, (DWORD)len, (BYTE *)out))
             abort();
 
@@ -40,22 +42,22 @@ void randombytes(unsigned char *out, unsigned long long outlen) {
         abort();
 }
 #elif defined(__linux__) && defined(SYS_getrandom)
-void randombytes(unsigned char *out, unsigned long long outlen) {
+void randombytes(unsigned char *out, size_t outlen) {
     ssize_t ret;
 
     while(outlen > 0) {
-        ret = syscall(SYS_getrandom, out, outlen, 0);
+        ret = getrandom(out, outlen, 0);
         if(ret == -1 && errno == EINTR)
             continue;
         else if(ret == -1)
             abort();
 
         out += ret;
-        outlen -= ret;
+        outlen -= (size_t)ret;
     }
 }
 #else
-void randombytes(unsigned char *out, unsigned long long outlen) {
+void randombytes(unsigned char *out, size_t outlen) {
     static int fd = -1;
     ssize_t ret;
 
@@ -75,7 +77,7 @@ void randombytes(unsigned char *out, unsigned long long outlen) {
             abort();
 
         out += ret;
-        outlen -= ret;
+        outlen -= (size_t)ret;
     }
 }
 #endif
