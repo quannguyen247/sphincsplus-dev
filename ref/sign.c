@@ -239,6 +239,15 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
         tree = tree >> SPX_TREE_HEIGHT;
     }
 
+
+    /* Print first 8 bytes of root and pub_root for debugging/visualization */
+    printf("[Step 4] root     (first 8 bytes): ");
+    for (int i = 0; i < 8; i++) printf("%02X%s", root[i], i < 7 ? " " : "");
+    printf(" ...\n");
+    printf("[Step 4] pub_root (first 8 bytes): ");
+    for (int i = 0; i < 8; i++) printf("%02X%s", pub_root[i], i < 7 ? " " : "");
+    printf(" ...\n");
+
     /* Check if the root node equals the root node in the public key. */
     printf("[STEP 4] Check if the root node equals the root node in the public key.\n");
     if (memcmp(root, pub_root, SPX_N)) {
