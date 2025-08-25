@@ -88,7 +88,7 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     unsigned char seed[CRYPTO_SEEDBYTES];
     randombytes(seed, CRYPTO_SEEDBYTES);
     crypto_sign_seed_keypair(pk, sk, seed);
-    printf("[Done] Key generation completed successfully.\n");
+    printf("[DONE] Key generation completed successfully.\n");
     return 0;
 }
 
@@ -263,7 +263,7 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     printf("[STEP 5] Append the message M to the signature to form the final output.\n");
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
-    printf("[Done] Signature generated successfully.\n");
+    printf("[DONE] Signature generated successfully.\n");
     return 0;
 }
 
@@ -288,12 +288,12 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
         memset(m, 0, smlen);
         *mlen = 0;
-        printf("[Done] Signature verification unsuccessful!\n");
+        printf("[DONE] Signature verification unsuccessful!\n");
         return -1;
     }
 
     /* If verification was successful, move the message to the right place. */
-    printf("[Done] Signature verification successful!\n");
+    printf("[DONE] Signature verification successful!\n");
     memmove(m, sm + SPX_BYTES, *mlen);
 
     return 0;
