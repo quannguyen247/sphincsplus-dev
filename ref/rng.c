@@ -10,6 +10,7 @@
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#define LIM_LEN 0x1000000 // add limit for maxlen
 
 AES256_CTR_DRBG_struct  DRBG_ctx;
 
@@ -28,7 +29,7 @@ seedexpander_init(AES_XOF_struct *ctx,
                   unsigned char *diversifier,
                   unsigned long maxlen)
 {
-    if ( maxlen >= 0x100000000 )
+    if ( maxlen >= 0xFFFFFFFF )
         return RNG_BAD_MAXLEN;
     
     ctx->length_remaining = maxlen;

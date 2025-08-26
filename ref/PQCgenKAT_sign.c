@@ -19,6 +19,11 @@
 #define KAT_DATA_ERROR      -3
 #define KAT_CRYPTO_FAILURE  -4
 
+/* Number of test vectors to generate/process. Change this define to run more tests. */
+#ifndef NUM_TESTS
+#define NUM_TESTS 1
+#endif
+
 int		FindMarker(FILE *infile, const char *marker);
 int		ReadHex(FILE *infile, unsigned char *A, int Length, char *str);
 void	fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L);
@@ -56,13 +61,45 @@ main(void)
         entropy_input[i] = (unsigned char)i;
 
     randombytes_init(entropy_input, NULL);
-    for (int i=0; i<100; i++) {
+    /* Read message bytes from input.txt and reuse for all tests */
+    size_t input_size = 0;
+    {
+        FILE *fp_msg = fopen("input.txt", "rb");
+        if (fp_msg == NULL) {
+            printf("Couldn't open <input.txt> for read\n");
+            return KAT_FILE_OPEN_ERROR;
+        }
+        if (fseek(fp_msg, 0, SEEK_END) != 0) {
+            fclose(fp_msg);
+            printf("Couldn't seek <input.txt>\n");
+            return KAT_FILE_OPEN_ERROR;
+        }
+        long sz = ftell(fp_msg);
+        if (sz < 0) {
+            fclose(fp_msg);
+            printf("Couldn't determine size of <input.txt>\n");
+            return KAT_FILE_OPEN_ERROR;
+        }
+        input_size = (size_t)sz;
+        if (input_size > sizeof(msg)) {
+            fclose(fp_msg);
+            printf("ERROR: input.txt too large (max %zu bytes)\n", sizeof(msg));
+            return KAT_DATA_ERROR;
+        }
+        rewind(fp_msg);
+        if (fread(msg, 1, input_size, fp_msg) != input_size) {
+            fclose(fp_msg);
+            printf("Couldn't read entire <input.txt>\n");
+            return KAT_FILE_OPEN_ERROR;
+        }
+        fclose(fp_msg);
+    }
+    for (int i=0; i<NUM_TESTS; i++) {
         fprintf(fp_req, "count = %d\n", i);
         randombytes(seed, 48);
         fprintBstr(fp_req, "seed = ", seed, 48);
-        mlen = (unsigned long long int)(33*(i+1));
+        mlen = (unsigned long long int)input_size;
         fprintf(fp_req, "mlen = %llu\n", mlen);
-        randombytes(msg, mlen);
         fprintBstr(fp_req, "msg = ", msg, mlen);
         fprintf(fp_req, "pk =\n");
         fprintf(fp_req, "sk =\n");
@@ -78,6 +115,8 @@ main(void)
     }
 
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
+    /* Open a human-friendly output file mirroring the KAT result in a compact format */
+    FILE *fp_out = fopen("output.txt", "w");
     done = 0;
     do {
         if ( FindMarker(fp_req, "count = ") )
@@ -130,7 +169,7 @@ main(void)
         fprintBstr(fp_rsp, "sm = ", sm, smlen);
         fprintf(fp_rsp, "\n");
 
-        if ( (ret_val = crypto_sign_open(m1, &mlen1, sm, smlen, pk)) != 0) {
+    if ( (ret_val = crypto_sign_open(m1, &mlen1, sm, smlen, pk)) != 0) {
             printf("crypto_sign_open returned <%d>\n", ret_val);
             return KAT_CRYPTO_FAILURE;
         }
@@ -145,6 +184,28 @@ main(void)
             return KAT_CRYPTO_FAILURE;
         }
 
+        /* Write a compact, human-readable summary to output.txt (if available) */
+        if (fp_out != NULL) {
+            unsigned long long siglen = smlen - mlen;
+            fprintf(fp_out, "Key Generation Stage:\n");
+            fprintf(fp_out, " - Input: None\n");
+            fprintf(fp_out, " - Output:\n");
+            fprintBstr(fp_out, "* Public Key: ", pk, CRYPTO_PUBLICKEYBYTES);
+            fprintBstr(fp_out, "* Secret Key: ", sk, CRYPTO_SECRETKEYBYTES);
+            fprintf(fp_out, "\n");
+
+            fprintf(fp_out, "Signing Stage:\n");
+            fprintf(fp_out, " - Input: input.txt, sk\n");
+            fprintf(fp_out, " - Output:\n");
+            /* signature is the first siglen bytes of sm */
+            fprintBstr(fp_out, "* Signature: ", sm, siglen);
+            fprintf(fp_out, "\n");
+
+            fprintf(fp_out, "Verifying Stage:\n");
+            fprintf(fp_out, " - Input: input.txt, sig, pk\n");
+            fprintf(fp_out, " - Output: %s\n\n", "Valid");
+        }
+
         free(m);
         free(m1);
         free(sm);
@@ -153,6 +214,10 @@ main(void)
 
     fclose(fp_req);
     fclose(fp_rsp);
+
+    if (fp_out != NULL) {
+        fclose(fp_out);
+    }
 
     return KAT_SUCCESS;
 }
@@ -259,4 +324,3 @@ fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L)
 
 	fprintf(fp, "\n");
 }
-

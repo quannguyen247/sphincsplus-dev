@@ -1,8 +1,11 @@
+test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 PARAMS = sphincs-haraka-128f
 THASH = robust
 
-CC=/usr/bin/gcc
+CC = gcc
 CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+LDLIBS = -lcrypto
 
 SOURCES =          address.c randombytes.c merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c
 HEADERS = params.h address.h randombytes.h merkle.h wots.h wotsx1.h utils.h utilsx1.h fors.h api.h  hash.h thash.h
@@ -45,14 +48,14 @@ benchmark: $(BENCHMARK:=.exec)
 PQCgenKAT_sign: PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
 
-test/benchmark: test/benchmark.c test/cycles.c $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ test/cycles.c $(SOURCES) $< $(LDLIBS)
+test/benchmark: test/benchmark.c test/cycles.c $(DET_SOURCES) $(DET_HEADERS)
+	$(CC) $(CFLAGS) -o $@ test/cycles.c $(DET_SOURCES) $< $(LDLIBS)
 
-test/%: test/%.c $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
+test/%: test/%.c $(DET_SOURCES) $(DET_HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< $(LDLIBS)
 
-test/haraka: test/haraka.c $(filter-out haraka.c,$(SOURCES)) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(filter-out haraka.c,$(SOURCES)) $< $(LDLIBS)
+test/haraka: test/haraka.c $(filter-out haraka.c,$(DET_SOURCES)) $(DET_HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(filter-out haraka.c,$(DET_SOURCES)) $< $(LDLIBS)
 
 test/%.exec: test/%
 	@$<
