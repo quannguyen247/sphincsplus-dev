@@ -1,5 +1,3 @@
-test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 PARAMS = sphincs-haraka-128f
 # PARAMS = sphincs-haraka-128s
 # PARAMS = sphincs-haraka-192f
@@ -53,7 +51,7 @@ BENCHMARK = test/benchmark
 
 default: PQCgenKAT_sign
 
-all: PQCgenKAT_sign tests benchmarks
+all: PQCgenKAT_sign tests benchmarks test_sphincsplus
 
 tests: $(TESTS)
 
@@ -65,6 +63,9 @@ benchmark: $(BENCHMARK:=.exec)
 
 PQCgenKAT_sign: PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
+
+test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 
 test/benchmark: test/benchmark.c test/cycles.c $(DET_SOURCES) $(DET_HEADERS)
 	$(CC) $(CFLAGS) -o $@ test/cycles.c $(DET_SOURCES) $< $(LDLIBS)
