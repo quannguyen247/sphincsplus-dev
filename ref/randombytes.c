@@ -1,83 +1,43 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
+/*
+This code was taken from the SPHINCS reference implementation and is public domain.
+*/
+
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "randombytes.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#include <wincrypt.h>
-#else
-#include <fcntl.h>
-#include <errno.h>
+static int fd = -1;
 
-#ifdef __linux__
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <sys/random.h>
-#endif
-#endif
+void randombytes(unsigned char *x, unsigned long long xlen)
+{
+    unsigned long long i;
 
-#ifdef _WIN32
-void randombytes(unsigned char *out, size_t outlen) {
-    HCRYPTPROV ctx;
-    size_t len;
-
-    if(!CryptAcquireContext(&ctx, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
-        abort();
-
-    while(outlen > 0) {
-        len = (outlen > 1048576) ? 1048576 : outlen;
-        if(!CryptGenRandom(ctx, (DWORD)len, (BYTE *)out))
-            abort();
-
-        out += len;
-        outlen -= len;
+    if (fd == -1) {
+        for (;;) {
+            fd = open("/dev/urandom", O_RDONLY);
+            if (fd != -1) {
+                break;
+            }
+            sleep(1);
+        }
     }
 
-    if(!CryptReleaseContext(ctx, 0))
-        abort();
-}
-#elif defined(__linux__) && defined(SYS_getrandom)
-void randombytes(unsigned char *out, size_t outlen) {
-    ssize_t ret;
+    while (xlen > 0) {
+        if (xlen < 1048576) {
+            i = xlen;
+        }
+        else {
+            i = 1048576;
+        }
 
-    while(outlen > 0) {
-        ret = getrandom(out, outlen, 0);
-        if(ret == -1 && errno == EINTR)
+        i = (unsigned long long)read(fd, x, i);
+        if (i < 1) {
+            sleep(1);
             continue;
-        else if(ret == -1)
-            abort();
+        }
 
-        out += ret;
-        outlen -= (size_t)ret;
+        x += i;
+        xlen -= i;
     }
 }
-#else
-void randombytes(unsigned char *out, size_t outlen) {
-    static int fd = -1;
-    ssize_t ret;
-
-    while(fd == -1) {
-        fd = open("/dev/urandom", O_RDONLY);
-        if(fd == -1 && errno == EINTR)
-            continue;
-        else if(fd == -1)
-            abort();
-    }
-
-    while(outlen > 0) {
-        ret = read(fd, out, outlen);
-        if(ret == -1 && errno == EINTR)
-            continue;
-        else if(ret == -1)
-            abort();
-
-        out += ret;
-        outlen -= (size_t)ret;
-    }
-}
-#endif
