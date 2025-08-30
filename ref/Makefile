@@ -1,7 +1,25 @@
 test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 PARAMS = sphincs-haraka-128f
+# PARAMS = sphincs-haraka-128s
+# PARAMS = sphincs-haraka-192f
+# PARAMS = sphincs-haraka-192s
+# PARAMS = sphincs-haraka-256f
+# PARAMS = sphincs-haraka-256s
+# PARAMS = sphincs-sha2-128f
+# PARAMS = sphincs-sha2-128s
+# PARAMS = sphincs-sha2-192f
+# PARAMS = sphincs-sha2-192s
+# PARAMS = sphincs-sha2-256f
+# PARAMS = sphincs-sha2-256s
+# PARAMS = sphincs-shake-128f
+# PARAMS = sphincs-shake-128s
+# PARAMS = sphincs-shake-192f
+# PARAMS = sphincs-shake-192s
+# PARAMS = sphincs-shake-256f
+# PARAMS = sphincs-shake-256s
 THASH = robust
+#THASH = simple
 
 CC = gcc
 CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
@@ -26,7 +44,7 @@ endif
 DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
 DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
 
-TESTS =         test/fors \
+TESTS = test/fors \
 		test/spx \
 
 BENCHMARK = test/benchmark
