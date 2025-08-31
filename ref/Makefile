@@ -1,5 +1,3 @@
-test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 PARAMS = sphincs-haraka-128f
 THASH = robust
 
@@ -32,6 +30,9 @@ TESTS =         test/fors \
 BENCHMARK = test/benchmark
 
 .PHONY: clean test benchmark
+
+test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 
 default: PQCgenKAT_sign
 
