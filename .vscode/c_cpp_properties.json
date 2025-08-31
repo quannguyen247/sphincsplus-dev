@@ -5,7 +5,6 @@
       "includePath": [
         "${workspaceFolder}/ref",
         "${workspaceFolder}/ref/params",
-        "${workspaceFolder}/ref/include",
         "${workspaceFolder}/haraka-aesni",
         "${workspaceFolder}/sha2-avx2",
         "${workspaceFolder}/shake-a64"
