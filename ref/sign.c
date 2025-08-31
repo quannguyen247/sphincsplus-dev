@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 199309L // POSIX compliance
+#include <time.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
@@ -12,6 +14,9 @@
 #include "randombytes.h"
 #include "utils.h"
 #include "merkle.h"
+
+// global timing struct now defined in api.h
+timing_info_t g_time = {0};
 
 /*
  * Returns the length of a secret key, in bytes
@@ -83,12 +88,21 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     //printf("\n=========== KEY GENERATION STAGE ===========\n\n");
     //printf("[STEP 1] Generate random seed with randombytes\n");
     unsigned char seed[CRYPTO_SEEDBYTES];
     randombytes(seed, CRYPTO_SEEDBYTES);
     crypto_sign_seed_keypair(pk, sk, seed);
     //printf("[DONE] Key generation completed successfully.\n");
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+    g_time.keygen += t;
+    g_time.all += t;
+
     return 0;
 }
 
@@ -98,6 +112,9 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 int crypto_sign_signature(uint8_t *sig, size_t *siglen,
                           const uint8_t *m, size_t mlen, const uint8_t *sk)
 {
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     spx_ctx ctx;
 
     const unsigned char *sk_prf = sk + SPX_N;
@@ -160,6 +177,11 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
     *siglen = SPX_BYTES;
 
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+    g_time.sign += t;
+    g_time.all += t;
+
     return 0;
 }
 
@@ -169,6 +191,9 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 int crypto_sign_verify(const uint8_t *sig, size_t siglen,
                        const uint8_t *m, size_t mlen, const uint8_t *pk)
 {
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     spx_ctx ctx;
     const unsigned char *pub_root = pk + SPX_N;
     unsigned char mhash[SPX_FORS_MSG_BYTES];
@@ -250,7 +275,13 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
     /* Check if the root node equals the root node in the public key. */
     //printf("[STEP 4] Check if the root node equals the root node in the public key.\n");
-    if (memcmp(root, pub_root, SPX_N)) {
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+    g_time.verify += t;
+    g_time.all += t;
+
+    if (memcmp(root, pub_root, SPX_N)) {  // timing ends before memcmp because memcmp is negligible
         return -1;
     }
 
@@ -265,6 +296,9 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
                 const unsigned char *m, unsigned long long mlen,
                 const unsigned char *sk)
 {
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     size_t siglen;
 
     crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
@@ -273,6 +307,11 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
     //printf("[DONE] Signature generated successfully.\n");
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+    g_time.all += t;
+
     return 0;
 }
 
@@ -293,6 +332,9 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
         return -1;
     }
 
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     *mlen = smlen - SPX_BYTES;
     if (crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, (size_t)*mlen, pk)) {
         memset(m, 0, smlen);
@@ -305,5 +347,21 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     //printf("[DONE] Signature verification successful!\n");
     memmove(m, sm + SPX_BYTES, *mlen);
 
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+    g_time.all += t;
+
     return 0;
+}
+
+// For testing: print timing information and return timing struct
+timing_info_t print_timing_info(void)
+{
+  g_time.temp = g_time.keygen + g_time.sign + g_time.verify;
+  /* printf("Total KeyGen time: %.6f seconds (%.2f ms)\n", g_time.keygen, g_time.keygen * 1000);
+  printf("Total Signing time: %.6f seconds (%.2f ms)\n", g_time.sign, g_time.sign * 1000);
+  printf("Total Verification time: %.6f seconds (%.2f ms)\n", g_time.verify, g_time.verify * 1000);
+  printf("Total time (not include packing and unpacking): %.6f seconds (%.2f ms)\n", g_time.temp, g_time.temp * 1000);
+  printf("Total time (NIST compliance): %.6f seconds (%.2f ms)\n", g_time.all, g_time.all * 1000); */
+  return g_time;
 }
