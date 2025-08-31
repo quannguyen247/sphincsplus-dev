@@ -3,3 +3,6 @@ test/*
 PQCsignKAT_*.rsp
 PQCsignKAT_*.req
 PQCgenKAT_sign
+test_sphincsplus
+input.txt
+output.txt

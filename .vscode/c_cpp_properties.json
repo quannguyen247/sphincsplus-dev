@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/ref",
+        "${workspaceFolder}/ref/params",
+        "${workspaceFolder}/ref/include",
+        "${workspaceFolder}/haraka-aesni",
+        "${workspaceFolder}/sha2-avx2",
+        "${workspaceFolder}/shake-a64"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}
