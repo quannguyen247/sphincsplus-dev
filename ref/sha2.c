@@ -286,7 +286,8 @@ static size_t crypto_hashblocks_sha256(uint8_t *statebytes,
     return inlen;
 }
 
-static int crypto_hashblocks_sha512(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen)
+// fix from int to unsigned long long
+static unsigned long long crypto_hashblocks_sha512(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen)
 {
   uint64_t state[8];
   uint64_t a;
