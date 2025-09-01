@@ -8,7 +8,15 @@ ifeq ($(THASH),robust)
 endif
 LDLIBS = -lcrypto
 
-SOURCES =          address.c randombytes.c merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c
+# OS-specific adjustments for randombytes
+ifeq ($(OS),Windows_NT)
+    RANDOMBYTES_SRC = randombytes_win.c
+    LDLIBS += -lbcrypt
+else
+    RANDOMBYTES_SRC = randombytes.c
+endif
+
+SOURCES =          address.c $(RANDOMBYTES_SRC) merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c
 HEADERS = params.h address.h randombytes.h merkle.h wots.h wotsx1.h utils.h utilsx1.h fors.h api.h  hash.h thash.h
 
 ifneq (,$(findstring shake,$(PARAMS)))
@@ -24,7 +32,8 @@ ifneq (,$(findstring sha2,$(PARAMS)))
 	HEADERS += sha2.h
 endif
 
-DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
+# For deterministic KAT generation, replace randombytes with rng.c
+DET_SOURCES = $(filter-out $(RANDOMBYTES_SRC),$(SOURCES)) rng.c
 DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
 
 TESTS =         test/fors \
