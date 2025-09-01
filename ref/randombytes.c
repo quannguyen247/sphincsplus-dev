@@ -24,14 +24,15 @@ void randombytes(unsigned char *x, unsigned long long xlen)
     }
 
     while (xlen > 0) {
+        size_t to_read;
         if (xlen < 1048576) {
-            i = xlen;
+            to_read = (size_t)xlen;
         }
         else {
-            i = 1048576;
+            to_read = 1048576;
         }
 
-        i = (unsigned long long)read(fd, x, i);
+        i = (unsigned long long)read(fd, x, (unsigned int)to_read);
         if (i < 1) {
             sleep(1);
             continue;
