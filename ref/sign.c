@@ -180,7 +180,6 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     clock_gettime(CLOCK_MONOTONIC, &end);
     double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
     g_time.sign += t;
-    g_time.all += t;
 
     return 0;
 }
@@ -279,7 +278,6 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen,
     clock_gettime(CLOCK_MONOTONIC, &end);
     double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
     g_time.verify += t;
-    g_time.all += t;
 
     if (memcmp(root, pub_root, SPX_N)) {  // timing ends before memcmp because memcmp is negligible
         return -1;
@@ -340,6 +338,11 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
         memset(m, 0, smlen);
         *mlen = 0;
         //printf("[DONE] Signature verification failed!\n");
+
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        double t = (double)(end.tv_sec - start.tv_sec) + ((double)(end.tv_nsec - start.tv_nsec)) / 1e9;
+        g_time.all += t;
+
         return -1;
     }
 
