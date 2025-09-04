@@ -43,7 +43,7 @@ BENCHMARK = test/benchmark
 
 .PHONY: clean test benchmark
 
-test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS)
+test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS) Makefile
 	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 
 default: PQCgenKAT_sign
@@ -58,14 +58,14 @@ benchmarks: $(BENCHMARK)
 
 benchmark: $(BENCHMARK:=.exec)
 
-PQCgenKAT_sign: PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
+PQCgenKAT_sign: PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS) Makefile
 	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
 
-test/benchmark: test/benchmark.c test/cycles.c $(DET_SOURCES) $(DET_HEADERS)
+test/benchmark: test/benchmark.c test/cycles.c $(DET_SOURCES) $(DET_HEADERS) Makefile
 	$(CC) $(CFLAGS) -o $@ test/cycles.c $(DET_SOURCES) $< $(LDLIBS)
 
-test/%: test/%.c $(DET_SOURCES) $(DET_HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< $(LDLIBS)
+test/%: test/%.c $(DET_SOURCES) $(DET_HEADERS) Makefile
+	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< $(LDLIBS) 
 
 test/haraka: test/haraka.c $(filter-out haraka.c,$(DET_SOURCES)) $(DET_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(filter-out haraka.c,$(DET_SOURCES)) $< $(LDLIBS)
