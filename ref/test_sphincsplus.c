@@ -5,7 +5,7 @@
 #include "randombytes.h"
 
 #define MLEN 1200 // limit input for testing
-#define NTESTS 1 // test count
+#define NTESTS 1000 // test count
 
 void run_test(FILE *fout, const unsigned char *m, unsigned long long mlen, int test_idx) 
 {
@@ -77,6 +77,7 @@ int main(void)
     printf("Public key bytes = %d\n", CRYPTO_PUBLICKEYBYTES);
     printf("Secret key bytes = %d\n", CRYPTO_SECRETKEYBYTES);
     printf("Signature bytes = %d\n", CRYPTO_BYTES);
+    printf("Message bytes = %zu\n", mlen);
     
     const char* thash_str;
 #ifdef SPX_ROBUST
