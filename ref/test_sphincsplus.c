@@ -77,7 +77,7 @@ int main(void)
     printf("Public key bytes = %d\n", CRYPTO_PUBLICKEYBYTES);
     printf("Secret key bytes = %d\n", CRYPTO_SECRETKEYBYTES);
     printf("Signature bytes = %d\n", CRYPTO_BYTES);
-    printf("Message bytes = %zu\n", mlen);
+    printf("Message bytes = %llu\n", mlen);
     
     const char* thash_str;
 #ifdef SPX_ROBUST
