@@ -94,6 +94,6 @@ extern timing_info_t g_time;
 timing_info_t print_timing_info(void);
 
 // add prototypes
-void run_test(FILE *fout, const unsigned char *m, unsigned long long mlen, int test_idx);
+void run_test(const unsigned char *m, unsigned long long mlen, int test_idx);
 
 #endif
