@@ -1,5 +1,5 @@
-PARAMS = sphincs-sha2-192f
-THASH = robust
+PARAMS = sphincs-sha2-256f
+THASH = simple
 
 CC = gcc
 CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
