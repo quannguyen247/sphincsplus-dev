@@ -1,6 +1,6 @@
 qemu-system-aarch64 \
   -machine virt \
-  -cpu cortex-a76 \
+  -cpu cortex-a53 \
   -m 4G \
   -drive file=../ubuntuARM64.img,if=virtio,format=qcow2 \
   -netdev user,id=net0 \
