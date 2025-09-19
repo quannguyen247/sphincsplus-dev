@@ -1,4 +1,4 @@
-PARAMS = sphincs-sha2-256f
+PARAMS = sphincs-shake-256f
 THASH = robust
 
 CC = gcc
