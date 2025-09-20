@@ -1,4 +1,4 @@
-PARAMS = sphincs-shake-128f
+PARAMS = sphincs-shake-192f
 THASH = simple
 
 CC = gcc
