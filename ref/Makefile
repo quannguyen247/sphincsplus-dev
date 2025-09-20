@@ -1,5 +1,5 @@
 PARAMS = sphincs-shake-128f
-THASH = robust
+THASH = simple
 
 
 CC = gcc
