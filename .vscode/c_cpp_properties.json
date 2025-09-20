@@ -14,7 +14,7 @@
                 "_UNICODE",
                 "PARAMS=sphincs-sha2-128f" // default value
             ],
-            "compilerPath": "C:\\msys64\\ucrt64\\bin\\gcc.exe",
+            "compilerPath": "gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "windows-gcc-x64"
