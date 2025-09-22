@@ -43,8 +43,8 @@ BENCHMARK = test/benchmark
 
 .PHONY: clean test benchmark
 
-test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS) Makefile
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
+test_sphincsplus: test/test_sphincsplus.c $(SOURCES) $(HEADERS) Makefile
+	$(CC) $(CFLAGS) -o test/$@ $(SOURCES) $< $(LDLIBS)
 
 default: PQCgenKAT_sign
 

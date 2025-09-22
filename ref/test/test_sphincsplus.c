@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "api.h"
-#include "randombytes.h"
+#include "../api.h"
+#include "../randombytes.h"
 
 #define MLEN 1200 // limit input for testing
 #define NTESTS 1000 // test count
@@ -49,8 +49,8 @@ void run_test(FILE *fout, const unsigned char *m, unsigned long long mlen, int t
 
 int main(void)
 {
-    FILE *fin = fopen("input.txt", "rb");
-    FILE *fout = fopen("output.txt", "w");
+    FILE *fin = fopen("test/input.txt", "rb");
+    FILE *fout = fopen("test/output.txt", "w");
     if (!fin || !fout) {
         printf("File error\n");
         return 1;
