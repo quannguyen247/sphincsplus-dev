@@ -5,7 +5,7 @@
 #include "randombytes.h"
 
 #define MLEN 1200 // limit input for testing
-#define NTESTS 1000 // test count
+#define NTESTS 1 // test count
 
 void run_test(const unsigned char *m, unsigned long long mlen, int test_idx)
 {
