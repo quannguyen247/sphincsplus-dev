@@ -2,7 +2,8 @@ PARAMS = sphincs-sha2-128f
 THASH = simple
 
 CC = gcc
-CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+CFLAGS= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
+	-Wshadow -Wpointer-arith -Wconversion -O3 -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) -z noexecstack
 ifeq ($(THASH),robust)
 	CFLAGS += -DSPX_ROBUST=1
 endif
@@ -43,8 +44,8 @@ BENCHMARK = test/benchmark
 
 .PHONY: clean test benchmark
 
-test_sphincsplus: test_sphincsplus.c $(SOURCES) $(HEADERS) Makefile
-	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
+test_sphincsplus: test/test_sphincsplus.c $(SOURCES) $(HEADERS) Makefile
+	$(CC) $(CFLAGS) -o test/$@ $(SOURCES) $< $(LDLIBS)
 
 default: PQCgenKAT_sign
 
