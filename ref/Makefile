@@ -2,7 +2,8 @@ PARAMS = sphincs-sha2-128f
 THASH = simple
 
 CC = gcc
-CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+CFLAGS= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
+	-Wshadow -Wpointer-arith -Wconversion -O3 -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) 
 ifeq ($(THASH),robust)
 	CFLAGS += -DSPX_ROBUST=1
 endif
