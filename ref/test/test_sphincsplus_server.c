@@ -448,9 +448,27 @@ int main(void) {
     uint16_t client_port = ntohs(client_addr.sin_port);
     printf("[+] Client connected from %s:%u\n\n", client_ip, client_port);
 
-    handle_client(client_sock, &client_addr);
+#ifndef _WIN32
+    pid_t pid = fork();
+    if (pid == 0) {
+      close(listen_sock);
+      handle_client(client_sock, &client_addr);
+      close(client_sock);
+      _exit(0);
+    }
+
+    if (pid < 0) {
+      perror("fork() failed");
+      close(client_sock);
+      continue;
+    }
 
     close(client_sock);
+#else
+    handle_client(client_sock, &client_addr);
+    close(client_sock);
+#endif
+
     printf("[+] Client disconnected\n\n");
   }
 
