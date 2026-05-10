@@ -252,8 +252,10 @@ int main(int argc, char *argv[]) {
     printf("- Batch delay: %u sec\n", batch_delay_sec);
     printf("\n");
 
-    if (batches == 0) {
-        /* Single batch mode */
+    unsigned int batch = 1;
+    while (batches == 0 || batch <= batches) {
+        printf("[BATCH %u/%s] Starting...\n", batch, batches == 0 ? "inf" : "fixed");
+
         pid_t *pids = calloc(concurrent_sessions, sizeof(pid_t));
         if (!pids) {
             perror("calloc failed");
@@ -266,6 +268,7 @@ int main(int argc, char *argv[]) {
             pids[i] = fork();
             if (pids[i] < 0) {
                 perror("fork failed");
+                free(pids);
                 return 1;
             } else if (pids[i] == 0) {
                 /* Child process */
@@ -278,6 +281,7 @@ int main(int argc, char *argv[]) {
             int status;
             if (waitpid(pids[i], &status, 0) < 0) {
                 perror("waitpid failed");
+                free(pids);
                 return 1;
             }
             if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
@@ -286,60 +290,23 @@ int main(int argc, char *argv[]) {
         }
 
         uint64_t batch_end = get_time_ms();
-        printf("[BATCH] Completed in %llu ms, %u/%u succeeded\n",
+        printf("[BATCH %u] Completed in %llu ms, %u/%u succeeded\n",
+               batch,
                (unsigned long long)(batch_end - batch_start),
                concurrent_sessions - failed_count, concurrent_sessions);
 
         free(pids);
-    } else {
-        /* Multiple batches mode */
-        for (unsigned int batch = 1; batch <= batches; batch++) {
-            printf("[BATCH %u/%u] Starting...\n", batch, batches);
 
-            pid_t *pids = calloc(concurrent_sessions, sizeof(pid_t));
-            if (!pids) {
-                perror("calloc failed");
-                return 1;
-            }
-
-            uint64_t batch_start = get_time_ms();
-
-            for (unsigned int i = 0; i < concurrent_sessions; i++) {
-                pids[i] = fork();
-                if (pids[i] < 0) {
-                    perror("fork failed");
-                    return 1;
-                } else if (pids[i] == 0) {
-                    /* Child process */
-                    exit(client_session(target_ip, sk));
-                }
-            }
-
-            int failed_count = 0;
-            for (unsigned int i = 0; i < concurrent_sessions; i++) {
-                int status;
-                if (waitpid(pids[i], &status, 0) < 0) {
-                    perror("waitpid failed");
-                    return 1;
-                }
-                if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-                    failed_count++;
-                }
-            }
-
-            uint64_t batch_end = get_time_ms();
-            printf("[BATCH %u/%u] Completed in %llu ms, %u/%u succeeded\n",
-                   batch, batches,
-                   (unsigned long long)(batch_end - batch_start),
-                   concurrent_sessions - failed_count, concurrent_sessions);
-
-            free(pids);
-
-            if (batch < batches && batch_delay_sec > 0) {
-                printf("[DELAY] Waiting %u seconds before next batch...\n", batch_delay_sec);
-                sleep(batch_delay_sec);
-            }
+        if (batches != 0 && batch >= batches) {
+            break;
         }
+
+        if (batch_delay_sec > 0) {
+            printf("[DELAY] Waiting %u seconds before next batch...\n", batch_delay_sec);
+            sleep(batch_delay_sec);
+        }
+
+        batch++;
     }
 
     return 0;
